@@ -1,0 +1,84 @@
+
+#include <iostream>
+#include <cstring>
+#include <sstream>
+#include <ctime> //for clock to time
+#include <time.h> //to use random number generator
+#include "sudoku.h"
+#include <algorithm> //for string transform
+
+
+using namespace std;
+
+int main(){
+    //initiliaze variables
+    string name, name2, level, optn, input;
+    
+    //begin game
+    cout<<"Hi, welcome to Sudoku!"<<endl;
+    cout<<"What username would you like?: ";
+    getline(cin, name);
+    
+    //ask if user if want to have a 2-player game
+    //while loop to keeping prompting until valid answer is entered
+
+    while(optn != "n" && optn != "y"){
+        cout<<"Do you have an opponent? 'Y' or 'N': ";
+        getline(cin, optn);
+        transform(optn.begin(), optn.end(), optn.begin(), ::tolower);		//convert string to all lowercase chars
+        //if user answers y, prompt for user 2's username
+        
+        name2 = name;
+        while (name == name2 && optn == "y"){
+        if(optn=="y"){
+            cout<<"What username would player 2 like?: ";
+            getline(cin, name2);
+            cout << endl;
+        }
+            
+            if (name ==name2){
+                cout <<"Please choose another username, this one has already been taken." ;
+            }
+    }
+    }
+    
+    //ask user for difficulty
+    //while loop to keeping prompting until valid answer is entered
+    while(level != "e" && level != "m" && level != "h"){
+        cout<<"What level difficulty would you like to play? 'E' for easy, 'M' for medium or 'H' for hard: ";
+        getline(cin, level);
+        transform(level.begin(), level.end(), level.begin(), ::tolower);		//convert string to all lowercase chars
+    }
+    cout << endl;
+    
+    //initialize user with username
+    user user1;
+    user1.username = name;
+    //sets score = to playgame function which returns user's score
+    user1.score = playgame(name, level[0]);
+    
+    //if there is a second player, do:
+    if(optn == "y"){
+        user user2;			//initialize user 2
+        user2.username = name2;
+        while(input != "go" && input != "quit"){
+            cout << "Player 2, enter 'go' to start playing or 'quit' to exit: ";
+            getline(cin, input);
+            transform(input.begin(), input.end(), input.begin(), ::tolower);
+        }
+        cout << endl;
+        if(input == "go") user2.score = playgame(name2, level[0]);
+        else exit(0);
+        
+        
+        cout << user1.username << "'s score: " << user1.score << endl;
+        cout << user2.username << "'s score: " << user2.score << endl;
+        
+        if(user1.score < user2.score) cout << user1.username << " is the winner!!";
+        else cout << user2.username << " is the winner!!" << endl;
+    }
+    else cout << user1.username << "'s score: " << user1.score << endl;
+    
+    return 0;
+    
+}
