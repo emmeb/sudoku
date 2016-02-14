@@ -1,0 +1,483 @@
+#include <iostream>
+#include <cstring>
+#include <ctime> //for clock to time
+#include <time.h> //to use random number generator
+#include "sudoku.h"
+#include <algorithm>
+
+
+using namespace std;
+
+void boardEmpty(char level, int **& sol, int **& curr){ // takes in array for current and solution board as well                                     as level.
+    for (int i = 0; i < 9; i++) // this sets the current board equal to the solution board
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            curr[i][j] = sol[i][j];
+        }
+    }
+    
+    int i = 0;
+    int a, b; // become random values used as indices in the current array
+    if (level == 'e')// converts 30 spaces to 0s
+    {
+        while(i < 30){
+            a = rand() % 9;
+            b = rand() % 9;
+            if(curr[a][b] != 0) {
+                curr[a][b] = 0;
+                i++;
+            }
+        }
+    }
+    else if (level == 'm')
+    {
+        while(i < 45){ // converts 45 spaces to 0s
+            a = rand() % 9;
+            b = rand() % 9;
+            if(curr[a][b] != 0) {
+                curr[a][b] = 0;
+                i++;
+            }
+        }
+    }
+    else if (level == 'h')
+    {
+        while(i < 60){ // converts 60 spaces to 0s.
+            a = rand() % 9;
+            b = rand() % 9;
+            if(curr[a][b] != 0) {
+                curr[a][b] = 0;
+                i++;
+            }
+        }
+        
+    }
+    else cout << "That is not a valid option." << endl;
+    boardDrawer(curr);// prints out board with 0s.
+}
+
+void hint(int **& curr, int **& sol){ // takes in the array for the current board and the solution board
+    int i,j;
+    for (i = 0; i < 9; i++)
+    {
+        for (j = 0; j < 9; j++)
+        {
+            if (curr[i][j] == 0) // searches for the first array value containing a 0
+            {
+                curr[i][j] = sol[i][j];// replaces 0 with correct value
+                goto draw; // redraws the board
+            }
+        }
+    }
+draw:
+    boardDrawer(curr);
+    cout << "A " << sol[i][j] << " has been placed in the next available spot." << endl;
+}
+
+bool solutionGenerator(int **& sol){
+    int row, col;
+    row = col = 0;
+    
+    //traverse board and find 0s
+    //when found, jump to code to fill it
+    for(int i=0; i<9; i++){
+        for(int j=0; j<9; j++){
+            if(sol[i][j] == 0){
+                row = i;
+                col = j;
+                goto fill;
+            }
+        }
+    }
+    
+fill:
+    //if the row or cow != 0
+    if(row!=0 || col!=0){
+        for(int num = 1; num <= 9; num++){ //go thru 1-9 to check what will fit in the spot
+            if(ifFits(num, row, col, sol)){
+                sol[row][col] = num;   //if fits, set board at that spot = num
+                if(solutionGenerator(sol)) return true;  // if board is filled in, finished
+                //else,  failed, undo assignment and try again
+                sol[row][col] = 0;
+            }
+        }
+    }
+    else return true;
+    return false; // to show that the solution is not complete
+    
+}
+
+//to start filling in the empty sol board
+void startFillingSol(int **& sol){
+    //initialize variables
+    int i=0, r, c, num;
+  srand (time(NULL));
+    
+    //set solution board = 0
+    for(int i=0; i<9; i++){
+        for(int j=0; j<9; j++){
+            sol[i][j] = 0;
+        }
+    }
+    
+    
+    //fill int the first box
+    sol[0][0] = (rand() % 9) + 1;
+    
+    //fill in 14 random numbers
+    while(i < 15){
+        r = rand() % 9;
+        c = rand() % 9;
+        num = (rand() % 9) + 1;
+        if(sol[r][c] == 0 && ifFits(num, r, c, sol)){
+            sol[r][c] = num;
+            i++;
+        }
+    }
+}
+
+//checks if number fits in the board
+//returns false if the number already exists its row, col, or box
+bool ifFits(int num, int row, int col, int **& board){
+    //check if used in row
+    //int i to check through columns
+    for(int i = 0; i < 9; i++){
+        if(board[row][i] == num) return false;
+    }
+    
+    //check if used in col
+    //int j to check through rows
+    for(int j = 0; j < 9; j++){
+        if(board[j][col] == num) return false;
+    }
+    
+    //for 3x3 box:
+    int startRow, startCol;
+    //set the starting row for the box
+    if(row < 3) startRow = 0;
+    else if(row < 6) startRow = 3;
+    else startRow = 6;
+    //set the starting col for the box
+    if(col < 3) startCol = 0;
+    else if(col < 6) startCol = 3;
+    else startCol = 6;
+    //check if used in 3x3 box
+    for (int i = 0; i < 3; i++){
+        for (int j = 0; j < 3; j++){
+            if (board[i+startRow][j+startCol] == num) return false;
+        }
+    }
+    
+    return true;
+}
+
+//for when user enters 'quit'
+//display cpuzzle solution and end program
+void finishPuzzle(int **& sol){
+    cout<< "The completed puzzle is:" << endl;
+    boardDrawer(sol);
+    cout << "Thanks for playing!" << endl;
+    exit(0);
+}
+
+//display board to user
+void boardDrawer(int **& curr){
+    cout << endl;
+    cout<<"  | A | B | C | D | E | F | G | H | I |"<<endl;
+    cout<<"--|===================================|"<<endl;
+    char x='A';
+    for (int i=0; i<9; i++){
+        cout<<x<<" | "<<curr[i][0]<<"   "<<curr[i][1]<<"   "<<curr[i][2]<<" | "<<curr[i][3]<<"   "<<curr[i][4]<<"   "<<curr[i][5]<<" | "<<curr[i][6]<<"   "<<curr[i][7]<<"   "<<curr[i][8]<<" |"<<endl;
+        x++;
+        if(i==2||i==5||i==8){
+            cout<<"--|===================================|"<<endl;
+        }
+        else{
+            cout<<"--|           |           |           |"<<endl;
+        }
+    }
+    cout << endl;
+}
+
+//check if user's answer matches the sol board
+bool answerChecker(int ans, int sol){ // int sol = sol[y][x]
+    if(ans==sol){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+//to update the game board if user's answer is correct
+void updateBoard(int ans, int **& curr, int y, int x){
+    //set the spot in the board to the answer
+    curr[x][y] = ans;
+    cout << endl;
+    //display to user
+    boardDrawer(curr);
+}
+
+//check if the board is completed
+bool isCompleted(int **& curr){
+    //traverse through board to check that there are no 0s
+    for(int i=0; i<9; i++){
+        for(int j=0; j<9; j++){
+            if(curr[i][j]!=0){
+            }
+            else{
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+//uses the user's time, amount of hints, and amount of incorrect guesses
+//to calculate the score
+//adds 30 points for each incorrect guess
+//adds 45 points for each hint used
+int scorekeeper(int time, int hints, int inc){ //returns score
+    int score = time + 45*hints + 30*inc;
+    return score;
+}
+
+//to take in the char given by the user
+//and convert it to the respective index for the array
+int convertCoordinate(char c){
+    if(c == 'a'){
+        return 0;
+    }
+    else if(c == 'b'){
+        return 1;
+    }
+    else if(c == 'c'){
+        return 2;
+    }
+    else if(c == 'd'){
+        return 3;
+    }
+    else if(c == 'e'){
+        return 4;
+    }
+    else if(c == 'f'){
+        return 5;
+    }
+    else if(c == 'g'){
+        return 6;
+    }
+    else if(c == 'h'){
+        return 7;
+    }
+    else if(c == 'i'){
+        return 8;
+    }
+    else{
+        return -1;
+    }
+}
+
+//to check if the user's coordinate is valid
+bool isValidCoord(string input){
+    //if string is longer than one char, invalid: return false
+    if(input[1] != NULL) {
+        cout << "That is not a valid coordinate. Please enter a letter A through I" << endl;
+        return false;
+    }
+    else{
+        //set char to be the first (and only) index of the string
+        char c = input[0];
+        //check if coord is bewteen a and i, return true if yes
+        if((c >= 'a' && c <= 'i')) return true;
+        //else tell user it's invalid and return false
+        else {
+            cout << "That is not a valid coordinate. Please enter a letter A through I" << endl;
+            return false;
+        }
+    }
+}
+
+
+
+int playgame(string username, char level){
+    string optn, xCoord, yCoord, input;
+    int guess, y, x, minutes, seconds, hints, time, score;
+    clock_t t;
+    float duration;
+    bool validCoord;
+    
+    //to count amount of incorrect guesses
+    int incGuess = hints = 0;
+    
+    //create solution board
+    int ** sol = new int *[9];
+    for(int i=0; i<9; i++){
+        sol[i]=new int [9];
+    }
+    
+    //set up curr board
+    int ** curr = new int *[9];
+    for(int i=0; i<9; i++){
+        curr[i]=new int [9];
+    }
+    
+    //fill solution board
+    startFillingSol(sol);
+    solutionGenerator(sol);
+    
+    cout << "The lower your score, the better!" << endl;
+    cout << "Enter 'quit' at anytime to quit." << endl;
+    cout << "Enter 'hint' at anytime to have the computer fill in a square." << endl;
+    
+    
+    //take out a certain amount(depending on the difficulty) of random numbers and display to user
+    boardEmpty(level, sol, curr);
+    
+    t = clock();		//begin timer
+    while(!isCompleted(curr)){								//while the board is not completely filled in do:
+        cout << "Where would you like to go?" << endl;
+        validCoord = false;
+        while(validCoord == false){						//continue to prompt user for x coordinate until valid option is entered
+            cout << "X coordinate: ";
+            getline(cin, input);
+            transform(input.begin(), input.end(), input.begin(), ::tolower);
+            if(input == "quit" ) goto end;				//if input is "quit", exit game loop
+            else if (input == "hint"){					//if input is "hint":
+                hint(curr, sol);						//update board with hint
+                hints++;								//increase hint count
+                goto bottom;							//go to bottom of while loop to begin loop again
+            }
+            else{
+                validCoord = isValidCoord(input);		//check if input is a valid coordinate
+                y = convertCoordinate(input[0]);		//convert coordinate letter to an int for the array index
+            }
+        }
+        validCoord = false;				//reset valid coord to enter the while loop
+        while(validCoord == false){						//repeat above code for the Y axis coordinate
+            cout << "Y coordinate: ";
+            getline(cin, input);
+            transform(input.begin(), input.end(), input.begin(), ::tolower);
+            if(input == "quit" ) goto end;
+            else if (input == "hint"){
+                hint(curr, sol);
+                hints++;
+                goto bottom;
+            }
+            else{
+                validCoord = isValidCoord(input);
+                x = convertCoordinate(input[0]);
+            }
+        }
+        
+        //check if the coordinates already have a number there,
+        //if they do, reprint board and begin loop again
+        if(curr[x][y] != 0){
+            boardDrawer(curr);
+            cout << "That location is already occupied." << endl;
+        }
+        //if coordinates do not have anumber there
+        else{
+            cout << "What is your guess?:  ";			//prompt user for guess
+            getline(cin, input);
+            transform(input.begin(), input.end(), input.begin(), ::tolower);
+            if(input == "quit" ) goto end;				//if input is "quit", exit game loop
+            else if (input == "hint"){			       //if input is hint, give user a hint and increase hint count
+                hint(curr, sol);
+                hints++;
+                goto bottom;
+            }
+            else guess = input[0] - '0';			//convert input to an int
+            
+            if(answerChecker(guess, sol[x][y])){			//if guess matches solution board, update current board
+                updateBoard(guess, curr, y, x);
+                cout << "Correct!" << endl;
+            }
+            else {
+                boardDrawer(curr);
+                cout << "Sorry, that is incorrect!" << endl;   //if input is not correct, tell user
+                incGuess++;										//and increase incorrect guess count
+            }
+        }
+        //for the goto statement to jump to the end of the loop
+    bottom:
+        cout << endl;
+    }
+    
+    
+    
+    //for the goto statement to exit game loop
+end:
+    
+    //when puzzle finished, either by user or if user quits. Clock and score show up.
+    
+  //  t = clock() - t;   //end timer
+  //  time = ((float)t)/CLOCKS_PER_SEC;  //convert time to seconds
+    
+  //  score = scorekeeper(time, hints, incGuess);  //calculate score
+    
+    //convert time to minutes and seconds
+    //minutes = time/60;
+   // seconds = time%60;
+    
+    duration = (clock() - t) / (float)CLOCKS_PER_SEC;
+    
+    score = scorekeeper(duration, hints, incGuess);  //calculate score
+    
+    
+    //print stats to user
+    cout << duration ;
+    // "You took " << minutes << " minutes and " << seconds << " seconds." << endl;
+    cout << "You had " << incGuess << " incorrect guesses and used " << hints << " hints." << endl;
+    cout << "Your score is " << score << "." << endl;
+    cout << endl;
+    
+    
+    //print stats to user
+   /*cout << "You took " << minutes << " minutes and " << seconds << " seconds." << endl;
+   cout << "You had " << incGuess << " incorrect guesses and used " << hints << " hints." << endl;
+   cout << "Your score is " << score << "." << endl;
+   cout << endl;
+    
+    */
+    
+    //if the user quit, print solution  + score and exit.
+    
+    if(input== "quit"){
+        
+    finishPuzzle(sol); // solved puzzle
+    
+       // t = clock() - t;   //end timer
+      //  time = ((float)t)/CLOCKS_PER_SEC;  //convert time to seconds
+        
+        duration = (clock() - t) / (double)CLOCKS_PER_SEC;
+        
+        score = scorekeeper(duration, hints, incGuess);  //calculate score
+        
+        
+        //print stats to user
+        cout << duration ;
+        // "You took " << minutes << " minutes and " << seconds << " seconds." << endl;
+        cout << "You had " << incGuess << " incorrect guesses and used " << hints << " hints." << endl;
+        cout << "Your score is " << score << "." << endl;
+        cout << endl;
+        
+        
+        
+    }
+    
+    
+    
+    //cleaning up memory
+    for(int i=0; i<9; i++) {
+        delete [] sol[i];
+    }
+    delete sol;
+    for(int i=0; i<9; i++) {
+        delete [] curr[i];
+    }
+    delete curr;
+    
+    //return score for the user
+    return score;
+}
