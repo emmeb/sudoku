@@ -1,0 +1,24 @@
+#include <string>
+
+using namespace std;
+
+struct user{
+    string username;
+    int score;
+};
+
+void boardEmpty(char level, int **& sol, int **& curr);
+void hint(int **& curr, int **& sol);
+bool solutionGenerator(int **& sol);
+void startFillingSol(int **& sol);
+bool ifFits(int num, int row, int col, int **& board);
+void finishPuzzle(int **& sol);
+void boardDrawer(int **& curr);
+bool answerChecker(int ans, int sol); // int sol = sol[y][x]
+bool isCompleted(int **& curr);
+int scorekeeper(user ); //returns score
+void multiplayer(user user1, user user2);
+void updateBoard(int ans, int **& curr, int y, int x);
+int convertCoordinate(char c);
+bool isValidCoord(string c);
+int playgame(string username, char level); //return score
